@@ -23,5 +23,7 @@
 	</dict>
 	<key>NSSpeechRecognitionUsageDescription</key>
 	<string>The app uses speech recognition for voice commands.</string>
+	<key>NSMicrophoneUsageDescription</key>
+	<string>The app takes speech commands.</string>
 </dict>
 </plist>
