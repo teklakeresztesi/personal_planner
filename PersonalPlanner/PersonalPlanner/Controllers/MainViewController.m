@@ -6,67 +6,66 @@
 //
 
 #import "MainViewController.h"
+#import "SpeechManager.h"
+#import "SpeechManagerDelegate.h"
 #import <Speech/Speech.h>
 
-typedef NS_ENUM(NSUInteger, Status) {
-    kApproved,
-    kDenied,
-    kUnknown
-};
 
-@interface MainViewController ()
-
-@property (nonatomic, assign) Status status;
+@interface MainViewController ()<SpeechManagerDelegate>
 
 @property (nonatomic, weak) IBOutlet UILabel *statusLabel;
 @property (nonatomic, weak) IBOutlet UIButton *startButton;
+@property (nonatomic, weak) SpeechManager *speechManager;
+
 @end
 
 @implementation MainViewController
 
-// https://developer.apple.com/documentation/speech/asking-permission-to-use-speech-recognition
-
 - (void)viewDidLoad {
     [super viewDidLoad];
+    self.speechManager = [SpeechManager sharedInstance];
+    self.speechManager.delegate = self;
     
-    [SFSpeechRecognizer requestAuthorization:^(SFSpeechRecognizerAuthorizationStatus status) {
-        NSString * statusText;
-        
-        if (status == SFSpeechRecognizerAuthorizationStatusAuthorized) {
-            statusText = @"Authorized";
-            self.status = kApproved;
-        } else if (status == SFSpeechRecognizerAuthorizationStatusDenied) {
-            statusText = @"Denied";
-            self.status = kDenied;
-        } else if (status == SFSpeechRecognizerAuthorizationStatusRestricted) {
-            statusText = @"Restricted";
-            self.status = kDenied;
-        } else if (status == SFSpeechRecognizerAuthorizationStatusNotDetermined) {
-            statusText = @"NotDetermined";
-            self.status = kUnknown;
-        }
-        
-        dispatch_async(dispatch_get_main_queue(), ^{
-            self.statusLabel.text = statusText;
-            switch (self.status) {
-                case kApproved:
-                    self.startButton.titleLabel.text = @"Start listening";
-                    break;
-                case kDenied:
-                case kUnknown:
-                    self.startButton.titleLabel.text = @"Go to Settings";
-                    break;
-            }
-        });
-    }];
+    [self updateViewStatus];
 }
 
 - (IBAction)startButtonPressed:(id)sender {
-    if (self.status == kApproved) {
+    if ([self.speechManager isAllApproved]) {
         [self performSegueWithIdentifier:@"StartListening" sender: self];
     } else {
-        // TODO: open settings to app
+        // open settings to app
+        UIApplication *application = [UIApplication sharedApplication];
+        NSURL *settingsURL = [NSURL URLWithString:UIApplicationOpenSettingsURLString];
+        [application openURL:settingsURL options:@{} completionHandler:^(BOOL success) {
+            if (success) {
+                NSLog(@"Opened url");
+            }
+        }];
     }
+}
+
+#pragma mark - SpeechManagerDelegate
+
+- (void)permissionsUpdated:(id)sender {
+    [self updateViewStatus];
+}
+
+#pragma mark - Private
+
+- (void)updateViewStatus {
+    dispatch_async(dispatch_get_main_queue(), ^{
+        if ([self.speechManager isAllApproved]) {
+            self.statusLabel.text = @"Ready for voice commands";
+            [self.startButton setTitle:@"Start listening" forState: UIControlStateNormal];
+        } else if ([self.speechManager isAnyDenied]) {
+            self.statusLabel.text = @"Check your settings";
+            [self.startButton setTitle:@"Go to Settings" forState: UIControlStateNormal];
+        } else {
+            self.statusLabel.text = @"Trying to request permissions";
+            [self.startButton setTitle:@"" forState: UIControlStateNormal];
+            [self.speechManager requestPermissions];
+        }
+    });
 }
 
 @end

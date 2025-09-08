@@ -6,8 +6,8 @@
 //
 
 #import <UIKit/UIKit.h>
+#import "SpeechManagerDelegate.h"
 
-
-@interface ListeningViewController: UIViewController
+@interface ListeningViewController: UIViewController<SpeechManagerDelegate>
 
 @end

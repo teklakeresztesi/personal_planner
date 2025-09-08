@@ -44,6 +44,7 @@
                         </constraints>
                     </view>
                     <connections>
+                        <outlet property="startButton" destination="fts-kb-K8J" id="kHt-S2-dLb"/>
                         <outlet property="statusLabel" destination="vyX-pz-ytu" id="QCI-MC-aKg"/>
                         <segue destination="6eI-y2-oq4" kind="showDetail" identifier="StartListening" id="pFN-qW-01w"/>
                     </connections>
@@ -60,17 +61,45 @@
                         <rect key="frame" x="0.0" y="0.0" width="393" height="783"/>
                         <autoresizingMask key="autoresizingMask" widthSizable="YES" heightSizable="YES"/>
                         <subviews>
-                            <activityIndicatorView opaque="NO" contentMode="scaleToFill" horizontalHuggingPriority="750" verticalHuggingPriority="750" fixedFrame="YES" style="whiteLarge" translatesAutoresizingMaskIntoConstraints="NO" id="z9O-ws-04d">
-                                <rect key="frame" x="178" y="51" width="37" height="37"/>
-                                <autoresizingMask key="autoresizingMask" flexibleMaxX="YES" flexibleMaxY="YES"/>
+                            <activityIndicatorView opaque="NO" contentMode="scaleToFill" horizontalHuggingPriority="750" verticalHuggingPriority="750" style="whiteLarge" translatesAutoresizingMaskIntoConstraints="NO" id="z9O-ws-04d">
+                                <rect key="frame" x="178" y="32" width="37" height="37"/>
                                 <color key="backgroundColor" white="0.0" alpha="0.0" colorSpace="custom" customColorSpace="genericGamma22GrayColorSpace"/>
                                 <color key="color" white="1" alpha="1" colorSpace="custom" customColorSpace="genericGamma22GrayColorSpace"/>
                             </activityIndicatorView>
+                            <button opaque="NO" contentMode="scaleToFill" fixedFrame="YES" contentHorizontalAlignment="center" contentVerticalAlignment="center" buttonType="system" lineBreakMode="middleTruncation" translatesAutoresizingMaskIntoConstraints="NO" id="r0U-8O-9Td">
+                                <rect key="frame" x="129" y="714" width="137" height="35"/>
+                                <autoresizingMask key="autoresizingMask" flexibleMaxX="YES" flexibleMaxY="YES"/>
+                                <state key="normal" title="Button"/>
+                                <buttonConfiguration key="configuration" style="plain" title="Stop recording">
+                                    <color key="baseForegroundColor" white="1" alpha="1" colorSpace="custom" customColorSpace="genericGamma22GrayColorSpace"/>
+                                </buttonConfiguration>
+                                <connections>
+                                    <action selector="stopButtonPressed:" destination="6eI-y2-oq4" eventType="touchUpInside" id="arA-zN-ZEI"/>
+                                </connections>
+                            </button>
+                            <label opaque="NO" userInteractionEnabled="NO" contentMode="left" horizontalHuggingPriority="251" verticalHuggingPriority="251" horizontalCompressionResistancePriority="1000" verticalCompressionResistancePriority="1000" text="" textAlignment="natural" lineBreakMode="tailTruncation" numberOfLines="0" baselineAdjustment="alignBaselines" adjustsFontSizeToFit="NO" translatesAutoresizingMaskIntoConstraints="NO" id="WnR-Qq-d9I">
+                                <rect key="frame" x="20" y="107" width="353" height="0.0"/>
+                                <fontDescription key="fontDescription" type="system" pointSize="17"/>
+                                <nil key="textColor"/>
+                                <nil key="highlightedColor"/>
+                            </label>
                         </subviews>
                         <viewLayoutGuide key="safeArea" id="3zl-QH-BEM"/>
                         <color key="backgroundColor" systemColor="systemMintColor"/>
+                        <constraints>
+                            <constraint firstItem="z9O-ws-04d" firstAttribute="centerX" secondItem="3zl-QH-BEM" secondAttribute="centerX" id="ZFU-mc-tRZ"/>
+                            <constraint firstItem="WnR-Qq-d9I" firstAttribute="leading" secondItem="3zl-QH-BEM" secondAttribute="leading" constant="20" id="eKp-qs-FkL"/>
+                            <constraint firstItem="3zl-QH-BEM" firstAttribute="trailing" secondItem="WnR-Qq-d9I" secondAttribute="trailing" constant="20" id="kK8-jh-tR3"/>
+                            <constraint firstItem="WnR-Qq-d9I" firstAttribute="top" secondItem="z9O-ws-04d" secondAttribute="bottom" constant="38" id="kja-Gz-lrS"/>
+                            <constraint firstItem="z9O-ws-04d" firstAttribute="top" secondItem="UQH-aU-XGC" secondAttribute="top" constant="32" id="zkL-LU-k5G"/>
+                        </constraints>
                     </view>
                     <navigationItem key="navigationItem" id="MeJ-jy-6RG"/>
+                    <connections>
+                        <outlet property="activityIndicator" destination="z9O-ws-04d" id="MRL-d8-pXU"/>
+                        <outlet property="stopButton" destination="r0U-8O-9Td" id="RsT-mi-T01"/>
+                        <outlet property="textLabel" destination="WnR-Qq-d9I" id="9Gv-XQ-csL"/>
+                    </connections>
                 </viewController>
                 <placeholder placeholderIdentifier="IBFirstResponder" id="4bt-vw-lcq" userLabel="First Responder" customClass="UIResponder" sceneMemberID="firstResponder"/>
             </objects>
