@@ -10,7 +10,7 @@
 #import "CommandParser.h"
 #import "CommandCell.h"
 
-@interface ListeningViewController ()<UITableViewDelegate, UITableViewDataSource>
+@interface ListeningViewController () <UITableViewDelegate, UITableViewDataSource>
 
 @property (nonatomic, weak) IBOutlet UIActivityIndicatorView *activityIndicator;
 @property (nonatomic, weak) IBOutlet UITableView *commandTableView;

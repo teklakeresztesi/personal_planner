@@ -11,7 +11,7 @@
 @interface SpeechManager: NSObject
 
 @property (nonatomic, weak) id<SpeechManagerDelegate> delegate;
-@property (atomic, assign) BOOL isListening;
+@property (nonatomic, readonly) BOOL isListening;
 
 - (instancetype)init NS_UNAVAILABLE;
 + (instancetype)new NS_UNAVAILABLE;

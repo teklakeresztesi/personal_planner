@@ -15,7 +15,7 @@ typedef NS_ENUM(NSUInteger, PermissionStatus) {
     PermissionStatusUnknown
 };
 
-@interface SpeechManager ()<SFSpeechRecognizerDelegate>
+@interface SpeechManager () <SFSpeechRecognizerDelegate>
 
 @property (nonatomic, assign) PermissionStatus speechStatus;
 @property (nonatomic, assign) PermissionStatus microphoneStatus;
@@ -26,6 +26,7 @@ typedef NS_ENUM(NSUInteger, PermissionStatus) {
 @property (nonatomic, strong) SFSpeechRecognitionTask *recognitionTask;
 @property (nonatomic, strong) NSTimer * finalizationTimer;
 
+@property (nonatomic, readwrite) BOOL isListening;
 
 @end
 
