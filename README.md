@@ -13,6 +13,8 @@ Voice commands can be:
 - add something to a to do list
 - stop listening
 
+Recognized voice commands appear on a list on the screen.
+
 # Testing
 
 Currently there are unit tests for the CommandParser class which can be found in the PersonalPlannerTests/Utils/CommandParserTests.m file.   
