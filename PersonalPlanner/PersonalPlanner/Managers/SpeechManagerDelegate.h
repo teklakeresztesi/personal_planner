@@ -10,7 +10,8 @@
 @protocol SpeechManagerDelegate <NSObject>
 
 @optional
-- (void)speechManager:(id)sender handleCommand:(NSString *)command;
+- (void)speechManager:(id)sender handleText:(NSString *)text;
+- (void)speechManager:(id)sender handleFinalText:(NSString *)text;
 - (void)permissionsUpdated:(id)sender;
 
 @end

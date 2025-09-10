@@ -8,17 +8,10 @@
 #import "SpeechManagerDelegate.h"
 #import <Speech/Speech.h>
 
-@protocol PermissionHandlingProtocol <NSObject>
-
-+ (void)requestRecordPermissionWithCompletionHandler:(void (^)(BOOL granted))response;
-+ (void)requestAuthorization:(void(^)(SFSpeechRecognizerAuthorizationStatus status))handler;
-
-@end
-
 @interface SpeechManager: NSObject
 
 @property (nonatomic, weak) id<SpeechManagerDelegate> delegate;
-@property (nonatomic, assign) BOOL isListening;
+@property (atomic, assign) BOOL isListening;
 
 - (instancetype)init NS_UNAVAILABLE;
 + (instancetype)new NS_UNAVAILABLE;

@@ -15,7 +15,7 @@ typedef NS_ENUM(NSUInteger, PermissionStatus) {
     PermissionStatusUnknown
 };
 
-@interface SpeechManager ()
+@interface SpeechManager ()<SFSpeechRecognizerDelegate>
 
 @property (nonatomic, assign) PermissionStatus speechStatus;
 @property (nonatomic, assign) PermissionStatus microphoneStatus;
@@ -24,12 +24,26 @@ typedef NS_ENUM(NSUInteger, PermissionStatus) {
 @property (nonatomic, strong) AVAudioEngine *audioEngine;
 @property (nonatomic, strong) SFSpeechAudioBufferRecognitionRequest *recognitionRequest;
 @property (nonatomic, strong) SFSpeechRecognitionTask *recognitionTask;
+@property (nonatomic, strong) NSTimer * finalizationTimer;
 
 
 @end
 
 @implementation SpeechManager
 
+- (instancetype)init
+{
+    self = [super init];
+    if (self) {
+        self.speechStatus = PermissionStatusUnknown;
+        self.microphoneStatus = PermissionStatusUnknown;
+        [self requestPermissions];
+        self.audioEngine = [[AVAudioEngine alloc] init];
+        self.speechRecognizer = [[SFSpeechRecognizer alloc] initWithLocale:[NSLocale localeWithLocaleIdentifier:@"en-US"]];
+        self.speechRecognizer.delegate = self;
+    }
+    return self;
+}
 
 #pragma mark - Public
 
@@ -42,19 +56,6 @@ typedef NS_ENUM(NSUInteger, PermissionStatus) {
     });
 
     return sharedInstance;
-}
-
-- (instancetype)init
-{
-    self = [super init];
-    if (self) {
-        self.speechStatus = PermissionStatusUnknown;
-        self.microphoneStatus = PermissionStatusUnknown;
-        [self requestPermissions];
-        self.audioEngine = [[AVAudioEngine alloc] init];
-        self.speechRecognizer = [[SFSpeechRecognizer alloc] initWithLocale:[NSLocale localeWithLocaleIdentifier:@"en-US"]];
-    }
-    return self;
 }
 
 - (BOOL)isAllApproved {
@@ -81,18 +82,19 @@ typedef NS_ENUM(NSUInteger, PermissionStatus) {
     AVAudioSession * audioSession = AVAudioSession.sharedInstance;
     [audioSession setCategory: AVAudioSessionCategoryRecord
                          mode: AVAudioSessionModeMeasurement
-                      options: AVAudioSessionCategoryOptionDuckOthers
+                      options: AVAudioSessionCategoryOptionInterruptSpokenAudioAndMixWithOthers
                         error:&error];
-    if (error == nil) {
-        [audioSession setActive:true
-                    withOptions:AVAudioSessionSetActiveOptionNotifyOthersOnDeactivation
-                          error:&error];
-        // TODO: handle error
-        if (error != nil) {
-            return false;
-        }
-    } else {
-        // TODO: handle error
+    if (error != nil) {
+        NSLog(@"Error: %@", error.localizedDescription);
+        return false;
+    }
+    
+    [audioSession setActive:true
+                withOptions:AVAudioSessionSetActiveOptionNotifyOthersOnDeactivation
+                      error:&error];
+
+    if (error != nil) {
+        NSLog(@"Error: %@", error.localizedDescription);
         return false;
     }
     
@@ -101,20 +103,22 @@ typedef NS_ENUM(NSUInteger, PermissionStatus) {
 
     self.recognitionTask = [self.speechRecognizer recognitionTaskWithRequest:self.recognitionRequest
                                                                resultHandler:^(SFSpeechRecognitionResult * _Nullable result, NSError * _Nullable error) {
+            NSString *spokenText = result.bestTranscription.formattedString;
             if (result) {
-                NSString *spokenText = result.bestTranscription.formattedString;
                 [self.delegate speechManager:self
-                               handleCommand:spokenText];
+                               handleText:spokenText];
+                [self startSilenceTimer];
             }
 
             if (error || result.isFinal) {
-                [self.audioEngine stop];
-                [inputNode removeTapOnBus:0];
-                self.recognitionRequest = nil;
-                self.recognitionTask = nil;
+                [self stopSilenceTimer];
+                [self stopListening];
+                [self.delegate speechManager:self
+                             handleFinalText:spokenText];
             }
         }];
     
+    [inputNode removeTapOnBus:0];
     AVAudioFormat *recordingFormat = [inputNode outputFormatForBus:0];
     [inputNode installTapOnBus:0
                     bufferSize:1024
@@ -129,16 +133,41 @@ typedef NS_ENUM(NSUInteger, PermissionStatus) {
     if (error) {
         NSLog(@"Failed to start audio engine: %@", error.localizedDescription);
     }
+    self.isListening = YES;
     return true;
 }
 
 - (void)stopListening {
     [self.audioEngine stop];
     [self.audioEngine.inputNode removeTapOnBus:0];
-    [self.recognitionRequest endAudio];
+    self.recognitionTask = nil;
+    self.recognitionRequest = nil;
+    self.isListening = NO;
+    NSLog(@"Stopped listening");
 }
 
 #pragma mark - Private
+
+- (void)startSilenceTimer {
+    [self.finalizationTimer invalidate];
+    self.finalizationTimer = [NSTimer scheduledTimerWithTimeInterval:1.5
+                                                              target:self
+                                                            selector:@selector(endRecognitionDueToSilence)
+                                                            userInfo:nil
+                                                             repeats:NO];
+}
+
+- (void)stopSilenceTimer {
+    [self.finalizationTimer invalidate];
+    self.finalizationTimer = nil;
+}
+
+-(void)endRecognitionDueToSilence {
+    [self.recognitionTask finish];
+    dispatch_after(dispatch_time(DISPATCH_TIME_NOW, (int64_t)(3 * NSEC_PER_SEC)), dispatch_get_main_queue(), ^{
+        [self startListening];
+    });
+}
 
 - (void)requestSpeechPermission {
     [SFSpeechRecognizer requestAuthorization:^(SFSpeechRecognizerAuthorizationStatus status) {
@@ -166,6 +195,12 @@ typedef NS_ENUM(NSUInteger, PermissionStatus) {
 
         [self.delegate permissionsUpdated:self];
     }];
+}
+
+#pragma mark - SFSpeechRecognitionDelegate
+
+- (void)speechRecognizer:(SFSpeechRecognizer *)speechRecognizer availabilityDidChange:(BOOL)available {
+    NSLog(@"speechRecognizer availabilityDidChange: %@", available ? @"true" : @"false");
 }
 
 @end
